@@ -3,10 +3,7 @@
 > 국내 IT 기업들의 최신 기술 블로그 소식을 한눈에 모아보세요.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white">
-  <img src="https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
-  <img src="https://img.shields.io/badge/Apache%20Kafka-231F20?style=for-the-badge&logo=apachekafka&logoColor=white">
-  <img src="https://img.shields.io/badge/Groq-F55036?style=for-the-badge&logo=groq&logoColor=white">
+  <img src="gts_main_page.png" alt="GrowTechStack" width="100%">
 </p>
 
 ---
@@ -55,35 +52,41 @@ gts-collector-service          gts-ai-summary-service
 
 ---
 
-## 목표 아키텍처
+## 목표 아키텍처 (변경 가능성 있음)
 
 ```
-                        ┌─────────────────────────────────────┐
-                        │           AWS Cloud                  │
-                        │                                      │
-  Client ──────────▶  API Gateway (Spring Cloud Gateway)      │
-                        │     - 라우팅                         │
-                        │     - JWT 인증                       │
-                        │     - Rate Limiting                  │
-                        │          │                           │
-              ┌─────────┼──────────┼──────────┐               │
-              ▼         ▼          ▼          ▼               │
-        collector   ai-summary   auth      (확장)             │
-        service     service      service                      │
-              │         │                                      │
-              └────── Kafka (AWS MSK) ────────┘               │
-              │                                               │
-              ├── MySQL (AWS RDS)                             │
-              ├── Redis (AWS ElastiCache)                     │
-              │     - 세션 / 캐싱 / Rate Limit               │
-              │                                               │
-              └── Prometheus + Grafana                        │
-                    - 서비스 메트릭 수집                       │
-                    - 커스텀 대시보드                          │
-                                                              │
-  Terraform로 전체 인프라 코드화 (IaC)                        │
-  GitHub Actions로 CI/CD 자동화                               │
-                        └─────────────────────────────────────┘
+  GitHub Actions (CI/CD)          Terraform (IaC)
+         │                               │
+         │         ┌────────────────────────────────────────────────┐
+         │         │                  AWS Cloud                      │
+         │         │                                                 │
+         └────────▶│                                                 │
+                   │   Frontend (React/Next.js)                      │
+                   │         │                                        │
+                   │         ▼                                        │
+  User ───────────▶│   API Gateway (Spring Cloud Gateway)            │
+                   │         │     - 라우팅                           │
+                   │         │     - JWT 인증 (Redis)                 │
+                   │         │     - Rate Limiting                    │
+                   │         │                                        │
+                   │   ┌─────┼──────────┬──────────┐                 │
+                   │   ▼     ▼          ▼          ▼                 │
+                   │ collector  ai-summary  auth   (확장)            │
+                   │ service    service     service                   │
+                   │   │    │       │          │                      │
+                   │   │    └──── Kafka ───────┘                     │
+                   │   │        (AWS MSK)                             │
+                   │   │                                              │
+                   │   ├── MySQL (AWS RDS)                           │
+                   │   │     └─ collector, auth                      │
+                   │   │                                              │
+                   │   ├── Redis (AWS ElastiCache)                   │
+                   │   │     └─ Gateway (Rate Limit), auth (세션)    │
+                   │   │                                              │
+                   │   └── Prometheus + Grafana                      │
+                   │         └─ 전 서비스 메트릭 수집 / 대시보드      │
+                   │                                                  │
+                   └──────────────────────────────────────────────────┘
 ```
 
 ### 단계별 계획
