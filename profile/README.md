@@ -1,101 +1,91 @@
-# GrowTechStack (GTS)
+# GrowTechStack
 
-> 국내 IT 기업들의 최신 기술 블로그 소식을 한눈에 모아보세요.
+> 국내 IT 기업 기술 블로그의 최신 글을 자동으로 수집·요약하여 한 곳에서 볼 수 있는 기술 콘텐츠 큐레이션 플랫폼
 
-<p align="center">
-  <img src="gts_main_page.png" alt="GrowTechStack" width="100%">
-</p>
+🌐 **[growtechstack.com](https://growtechstack.com)**
 
 ---
 
 ## 서비스 소개
 
-GrowTechStack은 국내 주요 IT 기업의 기술 블로그 RSS를 자동 수집하고,
-AI 요약을 통해 핵심 내용을 빠르게 파악할 수 있도록 돕는 기술 콘텐츠 플랫폼입니다.
+국내 IT 기업 기술 블로그의 RSS 피드를 자동으로 수집하고,
+Groq AI (Llama 3.1 8B)를 통해 핵심 내용을 3줄로 요약하여 제공합니다.
 
 ---
 
-## 현재 아키텍처
+## 아키텍처
 
 ```
-gts-collector-service          gts-ai-summary-service
-- RSS 수집 / 저장        →      - Groq(LLaMA 3.1) 기반 AI 요약
-- 콘텐츠 API 제공        ←      - 요약 결과 반환
-        │                              │
-        └──────── Apache Kafka ─────────┘
-               content-summary-request →
-               ← content-summary-result
+[ 사용자 브라우저 ]
+        │
+        ▼
+[ Vercel ] ── React Frontend (growtechstack.com)
+        │
+        ▼ /api/*
+[ Nginx + HTTPS ] ── AWS EC2
+        │
+        ▼
+[ API Gateway :8080 ] ── Spring Cloud Gateway
+        │ (Eureka 서비스 디스커버리)
+        ├──────────────────────┐
+        ▼                      ▼
+[ Collector :29999 ]   [ AI Summary :29998 ]
+        │   │                  │
+        │   └─── Kafka ────────┘
+        │         (Confluent Cloud)
+        │
+        └── AWS RDS (MySQL 8.0)
+
+[ Eureka Server :8761 ] ── 서비스 등록/디스커버리
 ```
 
 ---
 
 ## 레포지토리
 
-| 레포 | 설명 |
-|------|------|
-| [gts-collector-service](https://github.com/GrowTechStack/gts-collector-service) | RSS 수집, 콘텐츠 저장 및 API 제공 |
-| [gts-ai-summary-service](https://github.com/GrowTechStack/gts-ai-summary-service) | Kafka 기반 AI 요약 처리 서비스 |
-| [gts-infra](https://github.com/GrowTechStack/gts-infra) | Kafka 등 로컬 개발 인프라 구성 |
+| 레포지토리 | 설명 | 기술 |
+|------------|------|------|
+| [gts-frontend](../gts-frontend) | React 웹 프론트엔드 | React 19, Vite 7, Tailwind CSS 4, TanStack Query |
+| [gts-gateway](../gts-gateway) | API 게이트웨이 | Spring Boot 3.3, Spring Cloud Gateway |
+| [gts-collector-service](../gts-collector-service) | RSS 수집 및 콘텐츠 API | Spring Boot 3.5, JPA, Kafka, Rome |
+| [gts-ai-summary-service](../gts-ai-summary-service) | AI 요약 처리 | Spring Boot 3.3, Spring AI, Groq, Kafka |
+| [gts-eureka-server](../gts-eureka-server) | 서비스 디스커버리 | Spring Boot 3.3, Netflix Eureka |
+| [gts-infra](../gts-infra) | 인프라 및 배포 설정 | Terraform, Docker Compose, Nginx |
 
 ---
 
 ## 기술 스택
 
-| 분류 | 기술 |
-|------|------|
-| Backend | Java 17, Spring Boot 3.x, Spring Data JPA |
-| Messaging | Apache Kafka (KRaft) |
-| AI | Spring AI 1.1.1, Groq (LLaMA 3.1) |
-| Database | H2 File (→ MySQL 전환 예정) |
-| Frontend | Thymeleaf, Bootstrap 5 (→ React 분리 예정) |
-| Infra | Docker, (배포 예정: AWS / OCI) |
+**Backend**
+- Java 17 / Spring Boot 3.x
+- Spring Cloud Gateway, Netflix Eureka
+- Spring Data JPA / MySQL (AWS RDS)
+- Apache Kafka (Confluent Cloud)
+- Spring AI + Groq API (Llama 3.1 8B Instant)
+
+**Frontend**
+- React 19 / TypeScript / Vite 7
+- Tailwind CSS v4
+- TanStack Query v5 / Zustand v5 / React Router v7
+
+**Infra**
+- AWS EC2, RDS, ECR (ap-northeast-2)
+- Terraform (IaC)
+- Docker / Docker Compose
+- Nginx + Let's Encrypt (HTTPS)
+- GitHub Actions (CI/CD)
+- Vercel (Frontend 배포)
 
 ---
 
-## 목표 아키텍처 (변경 가능성 있음)
+## CI/CD
 
-```
-  GitHub Actions (CI/CD)          Terraform (IaC)
-         │                               │
-         │         ┌────────────────────────────────────────────────┐
-         │         │                  AWS Cloud                      │
-         │         │                                                 │
-         └────────▶│                                                 │
-                   │   Frontend (React/Next.js)                      │
-                   │         │                                        │
-                   │         ▼                                        │
-  User ───────────▶│   API Gateway (Spring Cloud Gateway)            │
-                   │         │     - 라우팅                           │
-                   │         │     - JWT 인증 (Redis)                 │
-                   │         │     - Rate Limiting                    │
-                   │         │                                        │
-                   │   ┌─────┼──────────┬──────────┐                 │
-                   │   ▼     ▼          ▼          ▼                 │
-                   │ collector  ai-summary  auth   (확장)            │
-                   │ service    service     service                   │
-                   │   │    │       │          │                      │
-                   │   │    └──── Kafka ───────┘                     │
-                   │   │        (AWS MSK)                             │
-                   │   │                                              │
-                   │   ├── MySQL (AWS RDS)                           │
-                   │   │     └─ collector, auth                      │
-                   │   │                                              │
-                   │   ├── Redis (AWS ElastiCache)                   │
-                   │   │     └─ Gateway (Rate Limit), auth (세션)    │
-                   │   │                                              │
-                   │   └── Prometheus + Grafana                      │
-                   │         └─ 전 서비스 메트릭 수집 / 대시보드      │
-                   │                                                  │
-                   └──────────────────────────────────────────────────┘
-```
+`main` 브랜치 push 시 자동 배포됩니다.
 
-### 단계별 계획
-
-| 단계 | 내용 | 상태 |
-|------|------|------|
-| 1 | RSS 수집 + AI 요약 (Kafka 연동) | ✅ 완료 |
-| 2 | MySQL 마이그레이션 + AWS 배포 (Terraform) | 🔲 예정 |
-| 3 | Spring Cloud Gateway + Redis 도입 | 🔲 예정 |
-| 4 | Auth 서비스 (JWT + Redis 세션) | 🔲 예정 |
-| 5 | Prometheus + Grafana 모니터링 | 🔲 예정 |
-| 6 | 프론트엔드 분리 (React/Next.js) | 🔲 예정 |
+| 서비스 | 배포 방식 |
+|--------|-----------|
+| Frontend | GitHub Actions → Vercel |
+| Gateway | GitHub Actions → ECR → EC2 |
+| Collector | GitHub Actions → ECR → EC2 |
+| AI Summary | GitHub Actions → ECR → EC2 |
+| Eureka | GitHub Actions → ECR → EC2 |
