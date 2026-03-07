@@ -2,6 +2,8 @@
 
 > 국내 IT 기업 기술 블로그의 최신 글을 자동으로 수집·요약하여 한 곳에서 볼 수 있는 기술 콘텐츠 큐레이션 플랫폼
 
+<img width="4564" height="1934" alt="image" src="https://github.com/user-attachments/assets/7d720388-9c67-40f3-8b2a-14bc081359e7" />
+
 🌐 **[growtechstack.com](https://growtechstack.com)**
 
 ---
