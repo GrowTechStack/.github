@@ -29,9 +29,9 @@ Groq AI (Llama 3.1 8B)를 통해 핵심 내용을 3줄로 요약하여 제공합
         ▼
 [ API Gateway :8080 ] ── Spring Cloud Gateway
         │ (Eureka 서비스 디스커버리)
-        ├──────────────────────┐
-        ▼                      ▼
-[ Collector :29999 ]   [ AI Summary :29998 ]
+        ├──────────────────────┬──────────────────────┐
+        ▼                      ▼                      ▼
+[ Collector :29999 ]   [ AI Summary :29998 ]   [ Auth :29997 ]
         │   │                  │
         │   └─── Kafka ────────┘
         │         (Confluent Cloud)
@@ -51,6 +51,7 @@ Groq AI (Llama 3.1 8B)를 통해 핵심 내용을 3줄로 요약하여 제공합
 | [gts-gateway](../gts-gateway) | API 게이트웨이 | Spring Boot 3.3, Spring Cloud Gateway |
 | [gts-collector-service](../gts-collector-service) | RSS 수집 및 콘텐츠 API | Spring Boot 3.5, JPA, Kafka, Rome |
 | [gts-ai-summary-service](../gts-ai-summary-service) | AI 요약 처리 | Spring Boot 3.3, Spring AI, Groq, Kafka |
+| [gts-auth-service](../gts-auth-service) | 인증 및 회원 관리 | Spring Boot 3.3, Spring Security, JWT, JPA |
 | [gts-eureka-server](../gts-eureka-server) | 서비스 디스커버리 | Spring Boot 3.3, Netflix Eureka |
 | [gts-infra](../gts-infra) | 인프라 및 배포 설정 | Terraform, Docker Compose, Nginx |
 
@@ -90,4 +91,5 @@ Groq AI (Llama 3.1 8B)를 통해 핵심 내용을 3줄로 요약하여 제공합
 | Gateway | GitHub Actions → ECR → EC2 |
 | Collector | GitHub Actions → ECR → EC2 |
 | AI Summary | GitHub Actions → ECR → EC2 |
+| Auth | GitHub Actions → ECR → EC2 |
 | Eureka | GitHub Actions → ECR → EC2 |
